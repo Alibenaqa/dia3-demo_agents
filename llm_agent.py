@@ -12,8 +12,11 @@ def read_file(file_path):
         return file.read()
 
 
-def ask_llm(question):
-    
+def ask_llm(question, history=None):
+    """history : liste des messages precedents [{"role": ..., "content": ...}]"""
+    if history is None:
+        history = []
+
     client = Groq(api_key=os.environ["GROQ_KEY"])
 
     chat_completion = client.chat.completions.create(
@@ -22,6 +25,7 @@ def ask_llm(question):
                 "role": "system",
                 "content": read_file(file_path="./context.txt")
             },
+            *history,
             {
                 "role": "user",
                 "content": question,
@@ -37,7 +41,11 @@ def ask_llm(question):
 
 
 if __name__ == "__main__":
-    question = input("Pose ta question :\n")
-    response = ask_llm(question)
-    print("\n")
-    print(response)
+    history = []
+    while True:
+        question = input("Pose ta question :\n")
+        response = ask_llm(question, history)
+        print("\n")
+        print(response)
+        history.append({"role": "user", "content": question})
+        history.append({"role": "assistant", "content": response})

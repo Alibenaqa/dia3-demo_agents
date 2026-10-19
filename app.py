@@ -6,7 +6,7 @@ st.set_page_config(page_title="Jarvis")
 st.title("Barbe-Quasar")
 
 
-# Historique du chat (affichage seulement) : survit aux reruns de streamlit grace a session_state
+# Memoire : l'historique survit aux reruns de streamlit grace a session_state
 if "history" not in st.session_state:
 	st.session_state.history = []
 
@@ -25,7 +25,7 @@ if user_input :
 	with st.chat_message("user"):
 		st.markdown(user_input)
 
-	response = ask_llm(user_input)
+	response = ask_llm(user_input, st.session_state.history)
 
 	with st.chat_message("assistant"):
 		st.markdown(response)
