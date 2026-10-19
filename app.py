@@ -1,14 +1,15 @@
 import streamlit as st 
-from llm_agent import ask_llm
+from llm_agent import ask_llm, load_history, save_history
 
 
 st.set_page_config(page_title="Jarvis")
 st.title("Barbe-Quasar")
 
 
-# Memoire : l'historique survit aux reruns de streamlit grace a session_state
+# Memoire : l'historique survit aux reruns de streamlit grace a session_state,
+# et aux refresh de la page grace au fichier history.json
 if "history" not in st.session_state:
-	st.session_state.history = []
+	st.session_state.history = load_history()
 
 for message in st.session_state.history:
 	with st.chat_message(message["role"]):
@@ -32,3 +33,4 @@ if user_input :
 
 	st.session_state.history.append({"role": "user", "content": user_input})
 	st.session_state.history.append({"role": "assistant", "content": response})
+	save_history(st.session_state.history)
