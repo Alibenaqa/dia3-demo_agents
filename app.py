@@ -14,7 +14,8 @@ def get_agent():
 
 agent = get_agent()
 
-for message in agent.conversation_history:
+# on n'affiche pas le message "system" (la personnalite), seulement la conversation
+for message in agent.conversation_history[1:]:
 	with st.chat_message(message["role"]):
 		st.markdown(message["content"])
 
