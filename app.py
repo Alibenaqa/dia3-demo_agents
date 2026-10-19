@@ -14,7 +14,7 @@ def get_agent():
 
 agent = get_agent()
 
-for message in agent.history:
+for message in agent.conversation_history:
 	with st.chat_message(message["role"]):
 		st.markdown(message["content"])
 

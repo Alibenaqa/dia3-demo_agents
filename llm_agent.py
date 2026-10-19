@@ -17,7 +17,7 @@ class ConversationAgent:
         self.groq_client = Groq(api_key=os.environ["GROQ_KEY"])
         self.model_name = model_name
         self.system_prompt = self.read_file(file_path=context_file)
-        self.history = []
+        self.conversation_history = []
 
     @staticmethod
     def read_file(file_path):
@@ -25,7 +25,12 @@ class ConversationAgent:
             return file.read()
 
     def update_conversation_history(self, role, content):
-        self.history.append({"role": role, "content": content})
+        self.conversation_history.append(
+            {
+                "role": role,
+                "content": content
+            }
+        )
 
     def ask_llm(self, question):
         chat_completion = self.groq_client.chat.completions.create(
@@ -34,7 +39,7 @@ class ConversationAgent:
                     "role": "system",
                     "content": self.system_prompt
                 },
-                *self.history,
+                *self.conversation_history,
                 {
                     "role": "user",
                     "content": question,
