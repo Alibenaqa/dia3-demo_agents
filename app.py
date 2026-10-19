@@ -6,11 +6,15 @@ st.set_page_config(page_title="Jarvis")
 st.title("Barbe-Quasar")
 
 
-# Memoire : l'historique survit aux reruns de streamlit grace a session_state
-if "history" not in st.session_state:
-	st.session_state.history = []
+# Memoire : st.cache_resource garde la liste dans la memoire du serveur streamlit,
+# elle survit donc aux reruns ET aux actualisations de la page (pas au redemarrage)
+@st.cache_resource
+def get_history():
+	return []
 
-for message in st.session_state.history:
+history = get_history()
+
+for message in history:
 	with st.chat_message(message["role"]):
 		st.markdown(message["content"])
 
@@ -25,10 +29,10 @@ if user_input :
 	with st.chat_message("user"):
 		st.markdown(user_input)
 
-	response = ask_llm(user_input, st.session_state.history)
+	response = ask_llm(user_input, history)
 
 	with st.chat_message("assistant"):
 		st.markdown(response)
 
-	st.session_state.history.append({"role": "user", "content": user_input})
-	st.session_state.history.append({"role": "assistant", "content": response})
+	history.append({"role": "user", "content": user_input})
+	history.append({"role": "assistant", "content": response})
