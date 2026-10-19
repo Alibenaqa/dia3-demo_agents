@@ -24,6 +24,9 @@ class ConversationAgent:
         with open(file_path, "r") as file:
             return file.read()
 
+    def update_conversation_history(self, role, content):
+        self.history.append({"role": role, "content": content})
+
     def ask_llm(self, question):
         chat_completion = self.groq_client.chat.completions.create(
             messages=[
@@ -43,8 +46,8 @@ class ConversationAgent:
 
         response = chat_completion.choices[0].message.content
 
-        self.history.append({"role": "user", "content": question})
-        self.history.append({"role": "assistant", "content": response})
+        self.update_conversation_history(role="user", content=question)
+        self.update_conversation_history(role="assistant", content=response)
         return response
 
 
