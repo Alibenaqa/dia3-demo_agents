@@ -29,7 +29,7 @@ if user_input :
 	with st.chat_message("user"):
 		st.markdown(user_input)
 
-	response = agent.ask(user_input)
+	response = agent.ask_llm(user_input)
 
 	with st.chat_message("assistant"):
 		st.markdown(response)

@@ -24,7 +24,7 @@ class ConversationAgent:
         with open(file_path, "r") as file:
             return file.read()
 
-    def ask(self, question):
+    def ask_llm(self, question):
         chat_completion = self.client.chat.completions.create(
             messages=[
                 {
@@ -52,6 +52,6 @@ if __name__ == "__main__":
     agent = ConversationAgent()
     while True:
         question = input("Pose ta question :\n")
-        response = agent.ask(question)
+        response = agent.ask_llm(question)
         print("\n")
         print(response)
