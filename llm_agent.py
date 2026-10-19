@@ -10,19 +10,19 @@ MODEL_NAME = "openai/gpt-oss-120b"
 CONTEXT_FILE = "./context.txt"
 
 
-def read_file(file_path):
-    with open(file_path, "r") as file:
-        return file.read()
-
-
 class ConversationAgent:
     """Agent conversationnel qui garde en memoire l'historique de la conversation."""
 
     def __init__(self, context_file=CONTEXT_FILE, model_name=MODEL_NAME):
         self.client = Groq(api_key=os.environ["GROQ_KEY"])
         self.model_name = model_name
-        self.system_prompt = read_file(file_path=context_file)
+        self.system_prompt = self.read_file(file_path=context_file)
         self.history = []
+
+    @staticmethod
+    def read_file(file_path):
+        with open(file_path, "r") as file:
+            return file.read()
 
     def ask(self, question):
         chat_completion = self.client.chat.completions.create(
