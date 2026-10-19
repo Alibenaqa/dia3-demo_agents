@@ -14,7 +14,7 @@ class ConversationAgent:
     """Agent conversationnel qui garde en memoire l'historique de la conversation."""
 
     def __init__(self, context_file=CONTEXT_FILE, model_name=MODEL_NAME):
-        self.client = Groq(api_key=os.environ["GROQ_KEY"])
+        self.groq_client = Groq(api_key=os.environ["GROQ_KEY"])
         self.model_name = model_name
         self.system_prompt = self.read_file(file_path=context_file)
         self.history = []
@@ -25,7 +25,7 @@ class ConversationAgent:
             return file.read()
 
     def ask_llm(self, question):
-        chat_completion = self.client.chat.completions.create(
+        chat_completion = self.groq_client.chat.completions.create(
             messages=[
                 {
                     "role": "system",
