@@ -1,89 +1,88 @@
-import streamlit as st 
+import streamlit as st
 from llm_agent import ConversationAgent
+from image_to_text import ImageToText
+
+
+IMAGE_TYPES = ["png", "jpg", "jpeg", "webp"]
+DEFAULT_IMAGE_QUESTION = "Que vois-tu sur cette image ?"
 
 
 class UserInterface:
-	def __init__(self):
-		st.set_page_config(page_title="Jarvis")
-		st.title("Barbe-Quasar")
-		self.conversation_agent_object = self.get_persistant_conversation_agent()
+    def __init__(self):
+        st.set_page_config(page_title="Jarvis")
+        st.title("Barbe-Quasar")
+        self.conversation_agent_object = (
+            self.get_persistant_conversation_agent()
+        )
+        self.image_to_text_object = self.get_persistant_image_to_text()
+        self.uploaded_images = self.get_persistant_uploaded_images()
 
+    def get_persistant_conversation_agent(self):
+        if "conversation_agent_object" not in st.session_state:
+            st.session_state.conversation_agent_object = ConversationAgent()
 
-	def get_persistant_conversation_agent(self):
-		
-		if "conversation_agent_object" not in st.session_state:
-			st.session_state.conversation_agent_object = ConversationAgent()
+        return st.session_state.conversation_agent_object
 
-		return st.session_state.conversation_agent_object
+    def get_persistant_image_to_text(self):
+        if "image_to_text_object" not in st.session_state:
+            st.session_state.image_to_text_object = ImageToText()
 
+        return st.session_state.image_to_text_object
 
-	def show_discussion_history(self):
-		for message in self.conversation_agent_object.get_conversation_history():
-			with st.chat_message(message["role"]):
-				st.markdown(message["content"])
+    def get_persistant_uploaded_images(self):
+        # {position du message dans l'historique: contenu de l'image}
+        if "uploaded_images" not in st.session_state:
+            st.session_state.uploaded_images = {}
 
+        return st.session_state.uploaded_images
 
-	def run(self):
-		text_interaction = st.chat_input(
-			"Que veux tu moussaillon ?",
-			accept_file=False,
-			accept_audio=False
-			)
+    def show_discussion_history(self):
+        history = self.conversation_agent_object.get_conversation_history()
+        for position, message in enumerate(history):
+            with st.chat_message(message["role"]):
+                if position in self.uploaded_images:
+                    st.image(self.uploaded_images[position], width=300)
+                st.markdown(message["content"])
 
-		if text_interaction :
-			self.conversation_agent_object.ask_llm(text_interaction)
-			self.show_discussion_history()
+    def add_image_to_message(self, text_interaction, image_file):
+        # l'image est gardee pour l'affichage, et sa description est
+        # ajoutee au message pour que le llm sache ce qu'il y a dessus
+        history = self.conversation_agent_object.get_conversation_history()
+        self.uploaded_images[len(history)] = image_file.getvalue()
 
+        description = self.image_to_text_object.describe(image_file)
+        return (
+            f"{text_interaction}\n\n"
+            f"> 🖼️ **Ce que Jarvis voit :** {description}"
+        )
+
+    def get_user_message(self, chat_interaction):
+        user_message = chat_interaction.text
+
+        if chat_interaction.files:
+            user_message = self.add_image_to_message(
+                user_message or DEFAULT_IMAGE_QUESTION,
+                chat_interaction.files[0]
+            )
+
+        return user_message
+
+    def run(self):
+        chat_interaction = st.chat_input(
+            "Que veux tu moussaillon ?",
+            accept_file=True,
+            file_type=IMAGE_TYPES,
+            accept_audio=False
+        )
+
+        if chat_interaction:
+            user_message = self.get_user_message(chat_interaction)
+            if user_message:
+                self.conversation_agent_object.ask_llm(user_message)
+
+        self.show_discussion_history()
 
 
 if __name__ == "__main__":
-	user_interface_object = UserInterface()
-	user_interface_object.run()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	# response = ask_llm(user_input)
-	# with st.chat_message("user"):
-	# 	st.markdown(user_input)
-
-	# with st.chat_message("system"):
-	# 	st.markdown(response)
-
-
+    user_interface_object = UserInterface()
+    user_interface_object.run()
