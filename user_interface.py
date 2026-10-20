@@ -30,7 +30,7 @@ class UserInterface:
         return st.session_state.image_to_text_object
 
     def get_persistant_uploaded_images(self):
-        # {position du message dans l'historique: contenu de l'image}
+        # {position du message : {"image": l'image, "text": la question}}
         if "uploaded_images" not in st.session_state:
             st.session_state.uploaded_images = {}
 
@@ -41,19 +41,26 @@ class UserInterface:
         for position, message in enumerate(history):
             with st.chat_message(message["role"]):
                 if position in self.uploaded_images:
-                    st.image(self.uploaded_images[position], width=300)
-                st.markdown(message["content"])
+                    # on montre l'image et la question, pas la description
+                    uploaded_image = self.uploaded_images[position]
+                    st.image(uploaded_image["image"], width=300)
+                    st.markdown(uploaded_image["text"])
+                else:
+                    st.markdown(message["content"])
 
     def add_image_to_message(self, text_interaction, image_file):
-        # l'image est gardee pour l'affichage, et sa description est
-        # ajoutee au message pour que le llm sache ce qu'il y a dessus
+        # l'image et la question sont gardees pour l'affichage, et la
+        # description est ajoutee au message envoye au llm (cachee a l'ecran)
         history = self.conversation_agent_object.get_conversation_history()
-        self.uploaded_images[len(history)] = image_file.getvalue()
+        self.uploaded_images[len(history)] = {
+            "image": image_file.getvalue(),
+            "text": text_interaction
+        }
 
         description = self.image_to_text_object.describe(image_file)
         return (
             f"{text_interaction}\n\n"
-            f"> 🖼️ **Ce que Jarvis voit :** {description}"
+            f"[Image envoyee par l'utilisateur : {description}]"
         )
 
     def get_user_message(self, chat_interaction):
