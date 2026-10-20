@@ -5,8 +5,8 @@ import os
 
 
 WHISPER_MODEL = "whisper-large-v3-turbo"
-PRIORITY_LANGUAGES = ["french", "english"]
-DEFAULT_LANGUAGE = "fr"
+# indice donne a whisper pour privilegier le francais et l'anglais
+LANGUAGE_HINT = "Conversation en francais ou en anglais."
 
 
 class SpeechToText:
@@ -14,23 +14,12 @@ class SpeechToText:
         load_dotenv()
         self.groq_client = Groq(api_key=os.environ["GROQ_KEY"])
 
-    def request_whisper(self, audio_file, language=None):
-        return self.groq_client.audio.transcriptions.create(
+    def transcribe(self, audio_file):
+        transcription = self.groq_client.audio.transcriptions.create(
             file=(audio_file.name, audio_file.getvalue()),
             model=WHISPER_MODEL,
-            response_format="verbose_json",
-            language=language,
+            response_format="text",
+            prompt=LANGUAGE_HINT,
         )
 
-    def transcribe(self, audio_file):
-        transcription = self.request_whisper(audio_file)
-
-        # francais et anglais en priorite : si whisper detecte une autre
-        # langue, on refait la transcription en forcant le francais
-        if transcription.language.lower() not in PRIORITY_LANGUAGES:
-            transcription = self.request_whisper(
-                audio_file,
-                language=DEFAULT_LANGUAGE
-            )
-
-        return transcription.text.strip()
+        return transcription.strip()
